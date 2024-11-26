@@ -1,0 +1,53 @@
+import csv
+from simple_salesforce import Salesforce
+
+# --- Salesforce Configuration ---
+SALESFORCE_USERNAME = 'your_salesforce_username'
+SALESFORCE_PASSWORD = 'your_salesforce_password'
+SALESFORCE_SECURITY_TOKEN = 'your_salesforce_security_token'
+SALESFORCE_CLIENT_ID = 'your_salesforce_client_id'  # Optional
+SALESFORCE_CLIENT_SECRET = 'your_salesforce_client_secret'  # Optional
+
+# --- CSV File Configuration ---
+CSV_FILE_PATH = 'path/to/your/exported_data.csv'
+
+def process_inbounds():
+    """
+    Extracts potential partner data from a local CSV file and creates Deals in Salesforce.
+    """
+    try:
+        # 1. Read data from the CSV file
+        with open(CSV_FILE_PATH, 'r', encoding='utf-8') as csvfile:  # Adjust encoding if needed
+            reader = csv.reader(csvfile)
+            next(reader)  # Skip the header row if present
+
+            # 2. Authenticate with Salesforce
+            sf = Salesforce(username=SALESFORCE_USERNAME,
+                            password=SALESFORCE_PASSWORD,
+                            security_token=SALESFORCE_SECURITY_TOKEN,
+                            client_id=SALESFORCE_CLIENT_ID,  # Optional
+                            client_secret=SALESFORCE_CLIENT_SECRET)  # Optional
+
+            # 3. Process the data
+            for row in reader:
+                category = row[0]  # Assuming 'category' is in the first column
+                if category == "potential partners":
+                    # Map CSV columns to Salesforce Deal fields
+                    deal_data = {
+                        'Name': row[1],  # Example mapping, adjust as needed
+                        'Amount': row[2],  # Example mapping, adjust as needed
+                        'Stage': 'Prospecting',  # Set an initial stage
+                        # ... map other fields ...
+                    }
+                    # Create the Deal in Salesforce
+                    sf.Deal.create(deal_data)
+                    print(f"Created Deal in Salesforce: {deal_data}")
+
+    except Exception as e:
+        print(f"Error: {e}")
+        return
+
+    print("Inbounds processed successfully!")
+
+if __name__ == "__main__":
+    process_inbounds()
